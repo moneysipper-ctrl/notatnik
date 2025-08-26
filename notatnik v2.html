@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prosty Notatnik</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-light: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --accent-purple: #8B5CF6;
+            --accent-pink: #EC4899;
+            --accent-blue: #06B6D4;
+            --accent-green: #10B981;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --glass-white: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%),
+                var(--primary-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            border-radius: 24px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-heavy);
+            overflow: hidden;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, 
+                rgba(139, 92, 246, 0.9) 0%, 
+                rgba(236, 72, 153, 0.9) 50%, 
+                rgba(6, 182, 212, 0.9) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: rotate 8s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+            font-weight: 300;
+        }
+
+        .toolbar {
+            background: var(--glass-white);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-pink) 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn.secondary:hover {
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn.danger:hover {
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .main-area {
+            padding: 30px;
+            background: var(--glass-white);
+            backdrop-filter: blur(20px);
+        }
+
+        .editor {
+            width: 100%;
+            min-height: 450px;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            color: var(--text-dark);
+        }
+
+        .editor:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.01);
+        }
+
+        .editor::placeholder {
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .stats {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            border-radius: 12px;
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 500;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .notes-list {
+            margin-top: 30px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .notes-list h3 {
+            color: var(--text-dark);
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .note-item {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .note-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .note-item:hover::before {
+            left: 0;
+        }
+
+        .note-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.2);
+            border-color: var(--accent-purple);
+        }
+
+        .note-item > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .note-preview {
+            font-size: 15px;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .note-date {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .note-item .btn {
+            font-size: 12px;
+            padding: 8px 16px;
+            margin-right: 8px;
+        }
+
+        /* Scrollbar styling */
+        .editor::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .editor::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .editor::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border-radius: 10px;
+        }
+
+        .editor::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+        }
+
+        /* Loading animation for buttons */
+        .btn.loading {
+            pointer-events: none;
+            position: relative;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .toolbar {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .btn {
+                flex: 1;
+                min-width: 120px;
+                padding: 10px 16px;
+            }
+            
+            .main-area {
+                padding: 20px;
+            }
+            
+            .editor {
+                min-height: 300px;
+                font-size: 14px;
+            }
+            
+            .container {
+                border-radius: 16px;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-dark: #F9FAFB;
+                --text-light: #D1D5DB;
+                --glass-white: rgba(30, 41, 59, 0.9);
+            }
+            
+            .editor {
+                background: rgba(30, 41, 59, 0.7);
+                color: var(--text-dark);
+            }
+            
+            .editor:focus {
+                background: rgba(30, 41, 59, 0.9);
+            }
+        }
+
+        /* Animation for note list items */
+        .note-item {
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Hover effect for the entire container */
+        .container:hover {
+            transform: scale(1.001);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Prosty Notatnik</h1>
+            <p>Twórz, edytuj i zapisuj swoje notatki</p>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn" onclick="newNote()">📄 Nowa notatka</button>
+            <button class="btn secondary" onclick="saveNote()">💾 Zapisz</button>
+            <button class="btn secondary" onclick="downloadNote()">⬇️ Pobierz</button>
+            <input type="file" id="fileInput" class="file-input" accept=".txt" onchange="loadFile(event)">
+            <button class="btn secondary" onclick="document.getElementById('fileInput').click()">📂 Wczytaj plik</button>
+            <button class="btn danger" onclick="clearNote()">🗑️ Wyczyść</button>
+        </div>
+
+        <div class="main-area">
+            <textarea class="editor" id="noteEditor" placeholder="Zacznij pisać swoją notatkę tutaj..."></textarea>
+            
+            <div class="stats" id="stats">
+                Znaków: 0 | Słów: 0 | Linijek: 1
+            </div>
+
+            <div class="notes-list">
+                <h3>Zapisane notatki:</h3>
+                <div id="notesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let notes = [];
+        let currentNoteIndex = -1;
+
+        // Inicjalizacja aplikacji
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotesFromMemory();
+            updateStats();
+            displayNotes();
+        });
+
+        // Aktualizacja statystyk podczas pisania
+        document.getElementById('noteEditor').addEventListener('input', function() {
+            updateStats();
+            // Automatyczne zapisywanie zawartości podczas pisania
+            localStorage.setItem('notepad-current-content', this.value);
+        });
+
+        function updateStats() {
+            const text = document.getElementById('noteEditor').value;
+            const chars = text.length;
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            const lines = text.split('\n').length;
+            
+            document.getElementById('stats').textContent = 
+                `Znaków: ${chars} | Słów: ${words} | Linijek: ${lines}`;
+        }
+
+        function newNote() {
+            document.getElementById('noteEditor').value = '';
+            currentNoteIndex = -1;
+            updateStats();
+            // Zapisz stan po utworzeniu nowej notatki
+            localStorage.setItem('notepad-current-content', '');
+            localStorage.setItem('notepad-current-index', '-1');
+        }
+
+        function saveNote() {
+            const content = document.getElementById('noteEditor').value.trim();
+            if (content === '') {
+                alert('Notatka jest pusta!');
+                return;
+            }
+
+            const note = {
+                id: Date.now(),
+                content: content,
+                date: new Date().toLocaleString('pl-PL'),
+                preview: content.substring(0, 50) + (content.length > 50 ? '...' : '')
+            };
+
+            if (currentNoteIndex >= 0) {
+                notes[currentNoteIndex] = note;
+            } else {
+                notes.unshift(note);
+            }
+
+            saveNotesToMemory();
+            displayNotes();
+            alert('Notatka została zapisana!');
+        }
+
+        function downloadNote() {
+            const content = document.getElementById('noteEditor').value;
+            if (content.trim() === '') {
+                alert('Nie ma nic do pobrania!');
+                return;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `notatka_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'text/plain') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('noteEditor').value = e.target.result;
+                    updateStats();
+                    // Zapisz wczytany plik
+                    localStorage.setItem('notepad-current-content', e.target.result);
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Proszę wybrać plik tekstowy (.txt)');
+            }
+        }
+
+        function clearNote() {
+            if (confirm('Czy na pewno chcesz wyczyścić notatkę?')) {
+                document.getElementById('noteEditor').value = '';
+                currentNoteIndex = -1;
+                updateStats();
+                // Wyczyść zapisany stan
+                localStorage.setItem('notepad-current-content', '');
+                localStorage.setItem('notepad-current-index', '-1');
+            }
+        }
+
+        function loadNote(index) {
+            const note = notes[index];
+            document.getElementById('noteEditor').value = note.content;
+            currentNoteIndex = index;
+            updateStats();
+            // Zapisz aktualny stan
+            localStorage.setItem('notepad-current-content', note.content);
+            localStorage.setItem('notepad-current-index', index.toString());
+        }
+
+        function deleteNote(index) {
+            if (confirm('Czy na pewno chcesz usunąć tę notatkę?')) {
+                notes.splice(index, 1);
+                saveNotesToMemory();
+                displayNotes();
+                if (currentNoteIndex === index) {
+                    newNote();
+                }
+            }
+        }
+
+        function displayNotes() {
+            const notesList = document.getElementById('notesList');
+            notesList.innerHTML = '';
+
+            if (notes.length === 0) {
+                notesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Brak zapisanych notatek</p>';
+                return;
+            }
+
+            notes.forEach((note, index) => {
+                const noteDiv = document.createElement('div');
+                noteDiv.className = 'note-item';
+                noteDiv.innerHTML = `
+                    <div class="note-preview">${note.preview}</div>
+                    <div class="note-date">${note.date}</div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn" style="font-size: 12px; padding: 5px 10px;" onclick="loadNote(${index})">Wczytaj</button>
+                        <button class="btn danger" style="font-size: 12px; padding: 5px 10px;" onclick="deleteNote(${index})">Usuń</button>
+                    </div>
+                `;
+                notesList.appendChild(noteDiv);
+            });
+        }
+
+        function saveNotesToMemory() {
+            try {
+                localStorage.setItem('notepad-notes', JSON.stringify(notes));
+                localStorage.setItem('notepad-current-content', document.getElementById('noteEditor').value);
+                localStorage.setItem('notepad-current-index', currentNoteIndex.toString());
+            } catch (e) {
+                console.error('Nie można zapisać do localStorage:', e);
+            }
+        }
+
+        function loadNotesFromMemory() {
+            try {
+                const saved = localStorage.getItem('notepad-notes');
+                if (saved) {
+                    notes = JSON.parse(saved);
+                }
+                
+                const savedContent = localStorage.getItem('notepad-current-content');
+                if (savedContent) {
+                    document.getElementById('noteEditor').value = savedContent;
+                }
+                
+                const savedIndex = localStorage.getItem('notepad-current-index');
+                if (savedIndex && savedIndex !== '-1') {
+                    currentNoteIndex = parseInt(savedIndex);
+                }
+            } catch (e) {
+                console.error('Nie można wczytać z localStorage:', e);
+                notes = [];
+            }
+        }
+
+        // Skróty klawiszowe
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveNote();
+            }
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                newNote();
+            }
+        });
+    </script>
+</body>
+</html>
